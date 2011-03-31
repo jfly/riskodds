@@ -53,6 +53,8 @@ def riskDag(attackers, defendingCountries):
 	else:
 		deathDist = deathDistribution(attackDice, defendDice)
 		for (deadAttackers, deadDefenders), prNextState in deathDist.iteritems():
+		#for deaths, prNextState in deathDist.iteritems():
+			#deadAttackers, deadDefenders = deaths
 			nextState = riskDag(attackers-deadAttackers, [ defenders-deadDefenders ] + remainingCountries)
 			node.addChild(nextState, prNextState)
 
@@ -102,6 +104,10 @@ class Distribution(dict):
 			self[key] = val
 
 	def __getitem__(self, key):
+		#if key in self:
+			#return self[key]
+		#else:
+			#return 0
 		try:
 			return dict.__getitem__(self, key)
 		except KeyError:
@@ -119,16 +125,27 @@ class Distribution(dict):
 		return dist
 
 import sys
-if len(sys.argv) < 3:
-	print "Usage: %s attackerCount defendingCountry1 [defendingCountry2 ...]" % sys.argv[0]
+argv = sys.argv
+#argv = [ 'foo', 2, 1 ]
+
+if len(argv) < 3:
+	print "Usage: %s [-p] attackerCount defendingCountry1 [defendingCountry2 ...]" % argv[0]
 	sys.exit()
 
-attackers = int(sys.argv[1])
+onlyPr = False
+if '-p' in argv:
+	onlyPr = True
+	argv.remove('-p')
+
+attackers = int(argv[1])
 defendingCountries = []
-for country in sys.argv[2:]:
+for country in argv[2:]:
 	defendingCountries.append(int(country))
 
 dag = riskDag(attackers, defendingCountries)
 # TODO - debug/help/precision options would be nice
 #print dag
-print "%.3f chance of %d attackers defeating %s defenders" % ( dag.prWin(), attackers, defendingCountries )
+if onlyPr:
+	print "%.3f" % dag.prWin()
+else:
+	print "%.3f chance of %d attackers defeating %s defenders" % ( dag.prWin(), attackers, defendingCountries )
